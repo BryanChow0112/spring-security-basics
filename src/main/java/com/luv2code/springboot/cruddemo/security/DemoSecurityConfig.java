@@ -21,11 +21,23 @@ public class DemoSecurityConfig {
         JdbcUserDetailsManager is a built-in option in Spring Security that
         uses JDBC to manage user credentials and roles in a relational database.
         We will need to follow a specific schema for the tables for it to work.
+        If you want to use a different schema, you can extend JdbcUserDetailsManager
         The datasource is automatically configured by Spring Boot.
     */
     @Bean
     public UserDetailsManager userDetailsManager(DataSource dataSource) {
-        return new JdbcUserDetailsManager(dataSource);
+
+        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+
+        // Tells Spring Security how to retrieve a user by username from our custom schema
+        jdbcUserDetailsManager.setUsersByUsernameQuery(
+                "select user_id, pw, active from members where user_id=?");
+
+        // Tells Spring Security how to retrieve the authorities/roles by username from our custom schema
+        jdbcUserDetailsManager.setAuthoritiesByUsernameQuery(
+                "select user_id, role from roles where user_id=?");
+
+        return jdbcUserDetailsManager;
     }
 
     /*

@@ -5,10 +5,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.sql.DataSource;
 
 /*
     @Configuration annotation is used to define a configuration class in Spring.
@@ -16,30 +17,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class DemoSecurityConfig {
 
-    // In-memory authentication
+    /*
+        JdbcUserDetailsManager is a built-in option in Spring Security that
+        uses JDBC to manage user credentials and roles in a relational database.
+        We will need to follow a specific schema for the tables for it to work.
+        The datasource is automatically configured by Spring Boot.
+    */
     @Bean
-    public InMemoryUserDetailsManager userDetailsManager() {
-
-        UserDetails john = User.builder()
-                .username("john")
-                .password("{noop}test123")  // {noop} (no operation) -> plaintext password
-                .roles("EMPLOYEE")
-                .build();
-
-        UserDetails mary = User.builder()
-                .username("mary")
-                .password("{noop}test123")
-                .roles("EMPLOYEE", "MANAGER")
-                .build();
-
-        UserDetails susan = User.builder()
-                .username("susan")
-                .password("{noop}test123")
-                .roles("EMPLOYEE", "MANAGER", "ADMIN")
-                .build();
-
-        // Add the users to the in-memory authentication
-        return new InMemoryUserDetailsManager(john, mary, susan);
+    public UserDetailsManager userDetailsManager(DataSource dataSource) {
+        return new JdbcUserDetailsManager(dataSource);
     }
 
     /*
@@ -71,4 +57,31 @@ public class DemoSecurityConfig {
 
         return httpSecurity.build();
     }
+
+    /*// In-memory authentication
+    @Bean
+    public InMemoryUserDetailsManager userDetailsManager() {
+
+        UserDetails john = User.builder()
+                .username("john")
+                .password("{noop}test123")  // {noop} (no operation) -> plaintext password
+                .roles("EMPLOYEE")
+                .build();
+
+        UserDetails mary = User.builder()
+                .username("mary")
+                .password("{noop}test123")
+                .roles("EMPLOYEE", "MANAGER")
+                .build();
+
+        UserDetails susan = User.builder()
+                .username("susan")
+                .password("{noop}test123")
+                .roles("EMPLOYEE", "MANAGER", "ADMIN")
+                .build();
+
+        // Add the users to the in-memory authentication
+        return new InMemoryUserDetailsManager(john, mary, susan);
+    }
+    */
 }
